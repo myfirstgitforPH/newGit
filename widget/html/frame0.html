@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+	<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+	<title>订单页面</title>
+	<link rel="stylesheet" type="text/css" href="../css/api.css" />
+	<link rel="stylesheet" type="text/css" href="../css/style.css" />
+	<style>
+		.empty {
+			/*text-align: center;
+				 padding: 120px 0;*/
+			heigth: 100%;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="empty"></div>
+</body>
+
+
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/jquery.min.js"></script>
+<!-- 无需加载 av-min.js -->
+<script type="text/javascript" src="../script/av-live-query-min.js"></script>
+<script type="text/javascript" src="../script/doT.min.js"></script>
+<script type="text/javascript" src="../script/date.format.js"></script>
+<script type="text/javascript" src="../script/leancloudFunction.js"></script>
+<script type="text/javascript">
+	apiready = function() {
+		//获取商家order信息
+		// getAllOrders(1).then(function(orders) {
+		// 	var getOrder = $api.getStorage("orders");
+		// 	console.log("历史订单>>" + JSON.stringify(getOrder));
+		// });
+		getAllOrders(1).then(function(orders) {
+			// console.log(JSON.st    ringify(orders));
+			//調用列表控件
+			var slipList = api.require('slipList');
+			slipList.open({
+				h : 1000,
+				rightBtn : [{
+					bg : "#FFA54F", //按钮背景色，支持 rgb，rgba，#，默认#ee8262，可为空
+					title : "確認訂單", //按钮名字，字符串类型，默认‘按钮’，可为空
+					//					titleSize : 13, //按钮标题大小，数字类型，默认13，可为空
+					//					titleColor : orange, //按钮标题颜色，支持 rgb，rgba，#，默认#ffffff，可为空
+					//					selectedColor : red//按钮选中时候的颜色值,支持 rgb，rgba，#，可为空,为空则无选中变化
+				}, {
+					bg : "#87CEEB", //按钮背景色，支持 rgb，rgba，#，默认#ee8262，可为空
+					title : "查看詳情", //按钮名字，字符串类型，默认‘按钮’，可为空
+					//					titleSize : 13, //按钮标题大小，数字类型，默认13，可为空
+					//					titleColor : orange, //按钮标题颜色，支持 rgb，rgba，#，默认#ffffff，可为空
+					//					selectedColor : red//按钮选中时候的颜色值,支持a，rgba，#，可为空,为空则无选中变化
+				}],
+				itemStyle : {
+					borderColor : "#AAAAAA",
+					bgColor : "#fff",
+					height : 60,
+					selectedColor : "#B2DFEE",
+				},
+				datas : orders,
+			}, function(ret, err) {
+				if (ret) {
+					api.openWin({
+						name : "orderDetails",
+						url : "./orderDetails.html",
+						pageParam : {
+							id : orders[ret.index],
+						}
+					})
+				} else {
+					alert(JSON.stringify(err));
+				}
+			});
+		});
+	}
+</script>
+
+</html>
+<script type="text/template" charset="utf-8" id='order_template'></script>

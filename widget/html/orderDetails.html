@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+	<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+	<title>訂單詳情</title>
+	<link rel="stylesheet" type="text/css" href="../css/api.css" />
+	<link rel="stylesheet" type="text/css" href="../css/orderDetails.css" />
+	<style>
+		body {
+			padding-top: 25px;
+		}
+
+		dt {
+			font-size: 14px;
+			width: 100%;
+			height: 40px;
+			border: 0.04em solid #F2F2F2;
+			display: flex;
+			justify-content: flex-start;
+			align-items: center;
+		}
+
+		div {
+			width: 100%;
+			padding-left: 5px;
+		}
+
+		dd span {}
+
+		.dtaddr {
+			height: auto;
+		}
+
+		.dtaddr span {
+			padding: 20px 0 20px;
+			width: 30%;
+		}
+
+		.dtaddr ul {
+			width: 70%;
+		}
+
+		.dtaddr ul li {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.pscs span {
+			display: flex;
+			/*justify-content: flex-start;*/
+			align-items: center;
+		}
+
+		.pscs.sp1 {
+			width: 30%;
+		}
+
+		.pscs .sp2 {
+			width: 70%;
+			display: flex;
+			justify-content: flex-end;
+		}
+
+		.cm {
+			display: flex;
+			align-items: center;
+		}
+
+		.cm span {
+			display: flex;
+			height: 40px;
+			justify-content: flex-start;
+			align-items: center;
+		}
+
+		.cm .spa1 {
+			width: 50%;
+		}
+
+		.cm .spa2 {
+			width: 18%;
+		}
+
+		.cm .spa3 {
+			width: 30%;
+		}
+
+		.btn {
+			/*width: 100%;
+				 position: fixed;
+				 bottom: 5%;*/
+			display: flex;
+			align-items: center;
+			justify-content: center
+		}
+
+		.m {
+			font-size: 20px;
+		}
+
+		button {
+			height: 40px;
+			background: #6AB494;
+			border-radius: 5px;
+			width: 50%;
+			color: #fff;
+			font-size: 16px;
+			border: 0.01em solid gray;
+		}
+
+		.ftb {
+			font-size: 18px;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="orderInfo"></div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/jquery.min.js"></script>
+<script type="text/javascript" src="../script/av-min.js"></script>
+<script type="text/javascript" src="../script/date.format.js"></script>
+<script type="text/javascript" src="../script/doT.min.js"></script>
+<script type="text/javascript" src="../script/underscore.js"></script>
+<script type="text/javascript">
+	apiready = function() {
+		var order = api.pageParam.id;
+		$api.setStorage('order', order);
+		var printstr = "";
+		for (var i = 0; i < order.cartArr.length; i++) {
+			printstr += '' + order.cartArr[i].commodityName + "     " + order.cartArr[i].commodityPrice + "    " + order.cartArr[i].coCount + "    " + (order.cartArr[i].coCount * order.cartArr[i].commodityPrice).toFixed(2) + ' <BR>';
+		}
+		var orderInfo_template = $("#orderInfo_template").html();
+		$("#orderInfo").html(doT.template(orderInfo_template)(order));
+		/**
+		 *打印前准备
+		 * 获取打印机蓝牙列表页面
+		 */
+		$("#printOrder").click(function(e) {
+			//獲取緩存的藍牙地址
+			var getMac = $api.getStorage("printMAC");
+			if (!_.isEmpty(getMac)) {
+				//有藍牙直接打印
+				var orderInfo;
+				orderInfo = "<CA>" + order.kitchenName.name + "</CA><BR>";
+				orderInfo += " <BR>";
+				orderInfo += "名称　　　 单价   数量  金额<BR>";
+				orderInfo += "--------------------------------<BR>";
+				orderInfo += printstr;
+				orderInfo += " <BR>";
+				orderInfo += "备注：" + order.remark + "<BR>";
+				orderInfo += "--------------------------------<BR>";
+				orderInfo += "合计：" + order.totalPrice + "元" + order.msg +"<BR>";
+				orderInfo += " <BR>";
+				orderInfo += "送货地点：" + order.address.addressDetails + "<BR>";
+				orderInfo += " <BR>";
+				orderInfo += "联系电话：" + order.address.userPhone + "<BR>";
+				orderInfo += " <BR>";
+				orderInfo += "訂單时间：" + new Date().format(order.createTime, "dateTime", 0) + "<BR>";
+				orderInfo += " <BR> <BR>";
+				var printModule = api.require('posPrinter');
+				var param = {
+					taskList: [{
+						printerAddr: getMac,
+						content: orderInfo,
+						keepAlive: true, //蓝牙打印机，建议把keepAlive设为true
+						copyNum: 1
+					}]
+				};
+				printModule.print(param);
+			} else {
+				//獲取打印機藍牙列表
+				api.openWin({
+					name: 'getBluetoothPrinters',
+					url: './getBluetoothPrinters.html'
+				});
+			}
+		})
+	};
+</script>
+<script type="text/template" charset="utf-8" id='orderInfo_template'>
+	{{?it}}
+	<dl>
+		<dt class="ftb">
+		訂單詳情
+		</dt> {{~it.cartArr:value:index}}
+		<dd class="cm">
+			<span class="spa1"> {{=value.commodityName}} </span>
+			<span class="spa2"> x{{=value.coCount}} </span>
+			<span class="spa3"> ￥{{=value.commodityPrice}} </span>
+		</dd>
+		{{~}}
+		<dt class="pscs">
+		<span class="sp1">联系商家</span>
+		<span class="sp2">實付:￥ <label class="m">{{=it.totalPrice}}{{=it.msg}}</label></span>
+		</dt>
+	</dl>
+	<dl>
+		<dt class="ftb">
+		配送信息
+		</dt>
+		<dt class="pscs">
+		<span class="sp1">配送時間</span>
+		<span class="sp2">尽快送達</span>
+		</dt>
+		<dt class="dtaddr">
+		<span>收貨地址</span>
+		<ul>
+		<li>
+		{{=it.address.address}}
+		</li>
+		<li>
+		{{=it.address.userName}} {{=it.address.userPhone}}
+		</li>
+		</ul>
+		</dt>
+		<dt class="pscs">
+		<span class="sp1">配送方式</span>
+		<span class="sp2">商家專送</span>
+		</dt>
+	</dl>
+	<dl>
+		<dt class="ftb">
+		訂單信息
+		</dt>
+		<dt class="pscs">
+		<span class="sp1">支付方式</span>
+		<span class="sp2">{{=it.payType}}</span>
+		</dt>
+		<dt class="pscs">
+		<span class="sp1">下單時間</span>
+		<span class="sp2">{{=new Date().format(it.createTime,"dateTime",0)}}</span>
+		</dt>
+	</dl>
+	<dl class="btn">
+		<button id="printOrder">
+		訂單打印
+		</button>
+	</dl>
+	{{?}}
+</script>
+
+</html>
